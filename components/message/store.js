@@ -1,14 +1,4 @@
-import mongoose from 'mongoose';
 import Model from './model.js';
-
-const db = mongoose;
-
-db.Promise = global.Promise;
-db.connect(
-	'mongodb+srv://lufz88:rPuJHvUcfhXhcLjU@cluster0.8zovn8k.mongodb.net/?retryWrites=true&w=majority'
-);
-
-console.log('[db] Conectada con exito');
 
 const list = [];
 
@@ -17,11 +7,31 @@ function addMessage(message) {
 	myMessage.save();
 }
 
-async function getMessages() {
-	const messages = await Model.find();
+async function getMessages(filterUser) {
+	let filter = {};
+	if (filterUser !== null) {
+		filter = { user: filterUser };
+	}
+	const messages = await Model.find(filter);
 	return JSON.stringify(messages);
 }
 
-const store = { add: addMessage, list: getMessages /*, get, update, delete */ };
+async function updateText(id, message) {
+	const foundMessage = await Model.findOne({ _id: id });
+	foundMessage.message = message;
+	const newMessage = await foundMessage.save();
+	return newMessage;
+}
+
+async function removeMessage(id) {
+	return Model.deleteOne({ _id: id });
+}
+
+const store = {
+	add: addMessage,
+	list: getMessages,
+	updateText: updateText,
+	remove: removeMessage /*, get, update, delete */,
+};
 
 export default store;
